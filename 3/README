@@ -1,0 +1,42 @@
+try making sorting work as a combination of radix and bubble sort by grouping indices into buckets and then starting at that index, also consider just a straight up bubble sort.
+revamp indexing by passing in size
+
+
+inode = inner node = non-leaf node
+
+The basic idea is a trie, but with delayed splitting. inodes store an array of pointers to leaf nodes and other inodes. Whether the pointer is to an inode or to a leaf is stored in a bitmap. leaves store a buffer of key, value pairs. When the buffer is full, the leaf becomes an inode. Leaves are unsorted.
+
+TODO consider storing inodes and leaves to be the same size, so that the leaf does not need to be reallocated, only the children do.
+
+This is actually a simplified version that implements only put and dump. Put is O(log N), dump is O(N). The indexing function is tunable. It will take in b bytes and return an index in the range [0, R).
+
+init()
+Initialize to an inode with no kids.
+
+put_inode(char *key, char *val)
+1. index key
+2. If the reference at index is NULL, make a new leaf
+3. If the reference at index is a leaf, put_leaf(this, key, val)
+4. Elif the reference at index is an inode, put_inode(key, val)
+
+put_leaf(inode *p, char *key, char *val)
+1. If sz_buffer + 1 >= B, remake this leaf into an inode, and distribute buffer
+2. Else, Add key and val at the end
+
+dump()
+Traverse the inodes until we hit a leaf. Then sort bfr, and print out val.
+
+R is the range of the index
+B is the maximum size of the buffer
+
+entry
+char *key
+char *val
+
+inode = inner node = non-leaf node
+bool isLeaf[R]
+char *kid[R]
+
+leaf
+int sz_bfr
+entry bfr[B]

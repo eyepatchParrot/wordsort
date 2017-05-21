@@ -1,0 +1,58 @@
+Trie Sort Delay :
+Input : an array of N (k, v)
+1. For each element, push into the root link.
+
+link_push : insert a new pair at this link
+link_push (k, v) (d, link) | d == 0    = leaf_push (k, v) link
+                           | otherwise = anode_push (h(d, k), k[d:], v) link
+
+leaf_push : insert a new pair into this leaf
+Input : a single (k, v)
+Output : a link to the leaf, or a link to an access node if burst
+1. Add element to end of buffer.
+2. If buffer is larger than L, then burst.
+	a. Allocate an access node.
+	b. Push all elements into the access node.
+	b. While some links are unused, distribute all elements in the buffer
+	   across all links in the access node.
+  c. If all links are used, increase the dimension of the access node and goto
+	   b.
+	d. Return a link to the access node.
+
+anode_push : returns a link to the access node, might be different if burst
+Input : (h, k, v)
+Output : a link to this access node, or a different access node if burst
+1. Push to links[h]
+2. If the link was a leaf and it burst, decrement numLeaves.
+3. If all links are access nodes, burst.
+	a. Copy the children links of each link into the higher dimension.
+	b. Return the higher dimensional node.
+
+access_node(D) :
+	links[H^D]  : links to other nodes
+	numLeaves   : number of leaf links left
+
+leaf :
+	buffer : a dynamically growing buffer of (k, v) pairs.
+
+link :
+	dimension : the dimension of the linked node, 0 for leaf
+	node      : a pointer to the node
+
+OPT : Save the first character in the leaf buffer so that when bursting the
+leaf, the character that is needed is already in cache.
+
+******************************************************************************
+
+Trie Sort History : Use the history of inserts to cache parts of keys so that
+when they key is out of cache, it can be retried more quickly. Since on a push
+the key should still be in cache, this isn't necessary, so focus on caching it
+for future bursts.
+
+Input : an array of N (k, v)
+1. For each element, push into the root link.
+
+link :
+	dimension : the dimension of the linked node, 0 for leaf
+	node      : a pointer to the node
+	lastW     : the number of hashes needed for the last insert to this link.

@@ -1,0 +1,67 @@
+#include "bmap.h"
+
+Bmap bmapMaskLut[WIDTH];
+
+void bmap_gen() {
+	for (int i = 0; i < 4; i++) {
+		for (int j = 0; j < 32; j++) {
+			Bmap v;
+			switch (i) {
+				case 0:
+					v = _mm_set_epi32(0, 0, 0, (1 << j));
+					break;
+
+				case 1:
+					v = _mm_set_epi32(0, 0, (1 << j), 0);
+					break;
+
+				case 2:
+					v = _mm_set_epi32(0, (1 << j), 0, 0);
+					break;
+
+				case 3:
+					v = _mm_set_epi32((1 << j), 0, 0, 0);
+					break;
+			}
+			bmapMaskLut[i * 32 + j] = v;
+		}
+	}
+}
+
+void bmap_set(Bmap* b, int i) {
+	//b[i/WIDTH] |= ((Bmap)1 << (i % WIDTH));
+	b[i/WIDTH] = _mm_or_si128(b[i/WIDTH], bmapMaskLut[i%WIDTH]);
+}
+
+//Bmap bmap_get(const Bmap* b, int i) {
+//	return b[i/WIDTH] & ((Bmap)1 << (i % WIDTH));
+//}
+
+// == 0 -> 1 - 1 = 0
+// != 0 -> 0 - 1 = 0xFFFF...
+unsigned bmap_getFill(const Bmap* b, int i) {
+	return _mm_testz_si128(b[i/WIDTH], bmapMaskLut[i%WIDTH]) - 1;
+//	return -(bmap_get(b, i) != 0);
+}
+
+unsigned bmap_byteEqZ(const Bmap* b) {
+	return _mm_movemask_epi8(_mm_cmpeq_epi32(*b, __mm_setzero_si128()));
+}
+
+int bmap_ffs(const Bmap* b, unsigned byteEqZ) {
+	unsigned byteNeqZ = ~byteEqZ;
+	int byteIx = ffs(byteNeqZ) - 1;
+	// might be faster to just do ffs regardless of it being set
+	assert(byteIx >= 1);
+	union {
+		Bmap b;
+		uint8_t byte[sizeof(Bmap)];
+	} ref;
+	ref.b = *b;
+	// ffs works on ints, so is byte too small?
+	return byteIx * 8 + ffs(ref.byte[byteIx]);
+}
+
+void bmap_shr(Bmap* b, int nBytes, int nBits) {
+	*b = 
+

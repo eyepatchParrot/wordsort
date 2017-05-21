@@ -1,0 +1,30 @@
+--------------------------------------------------------------------------------			--------------------------------------------------------------------------------
+I1 cache:         32768 B, 64 B, 8-way associative							I1 cache:         32768 B, 64 B, 8-way associative
+D1 cache:         32768 B, 64 B, 8-way associative							D1 cache:         32768 B, 64 B, 8-way associative
+LL cache:         6291456 B, 64 B, 12-way associative							LL cache:         6291456 B, 64 B, 12-way associative
+Command:          p_trie l.1										Command:          p_trie l.1
+Data file:        cachegrind.out.19650									Data file:        cachegrind.out.6547
+Events recorded:  Ir I1mr ILmr Dr D1mr DLmr Dw D1mw DLmw						Events recorded:  Ir I1mr ILmr Dr D1mr DLmr Dw D1mw DLmw
+Events shown:     Ir I1mr ILmr Dr D1mr DLmr Dw D1mw DLmw						Events shown:     Ir I1mr ILmr Dr D1mr DLmr Dw D1mw DLmw
+Event sort order: Ir I1mr ILmr Dr D1mr DLmr Dw D1mw DLmw						Event sort order: Ir I1mr ILmr Dr D1mr DLmr Dw D1mw DLmw
+Thresholds:       0.1 100 100 100 100 100 100 100 100							Thresholds:       0.1 100 100 100 100 100 100 100 100
+Include dirs:     											Include dirs:     
+User annotated:   											User annotated:   
+Auto-annotation:  off											Auto-annotation:  off
+
+--------------------------------------------------------------------------------			--------------------------------------------------------------------------------
+         Ir  I1mr  ILmr         Dr      D1mr      DLmr         Dw      D1mw    DLmw 			         Ir  I1mr  ILmr         Dr      D1mr      DLmr         Dw      D1mw      DLmw 
+--------------------------------------------------------------------------------			--------------------------------------------------------------------------------
+260,323,726 1,050 1,034 45,543,409 3,796,347 2,126,366 21,142,969 1,016,247 935,899  PROGRAM TOTALS	262,323,511 1,050 1,033 44,543,361 3,854,845 2,282,337 22,142,944 3,015,788 2,816,218  PROGRAM TOTALS
+
+--------------------------------------------------------------------------------			--------------------------------------------------------------------------------
+         Ir I1mr ILmr         Dr      D1mr      DLmr         Dw    D1mw    DLmw  file:function		         Ir I1mr ILmr         Dr      D1mr      DLmr         Dw      D1mw      DLmw  file:function
+--------------------------------------------------------------------------------			--------------------------------------------------------------------------------
+133,000,028    2    2 12,500,002 1,984,376 1,984,375          0       0       0  ???:__GI_strchr	133,000,028    2    2 12,500,002 1,984,376 1,984,375          0         0         0  ???:__GI_strchr
+ 49,000,000    5    5 10,000,000   813,299         0 10,000,000       0       0  ???:trie_inode_put	 46,000,000    4    4 10,000,000   864,474         0 10,000,000         0         0  ???:trie_inode_put
+ 33,000,029    2    2  5,000,007         1         1  4,000,011       0       0  ???:tokenizeLast	 33,000,029    3    2  5,000,007         1         1  4,000,011         0         0  ???:tokenizeLast
+ 24,000,000    3    3  8,000,000   993,659   140,272  6,000,000 999,682 919,412  ???:trie_leaf_put	 29,000,000    4    4  7,000,000   995,515   296,128  7,000,000 2,999,219 2,799,732  ???:trie_leaf_put
+ 15,000,000    0    0  7,000,000     2,879        58          0       0       0  ???:idxStr		 15,000,000    1    1  7,000,000     8,349       174          0         0         0  ???:idxStr
+  4,000,000    0    0  1,000,000         0         0  1,000,000       0       0  ???:trie_put		  4,000,000    0    0  1,000,000         0         0  1,000,000         0         0  ???:trie_put
+  2,000,278   33   29  2,000,153        17         7         54       1       1  ???:???		  2,000,278   31   28  2,000,153        18         7         54         1         1  ???:???
+
