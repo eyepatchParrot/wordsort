@@ -11,10 +11,10 @@ Psort: sort.cc
 	$(CC) $(CFLAGS) $(PFLAGS) $< -o $@
 
 time: Psort
-	time ./Psort z1e6 > /dev/null
+	time ./Psort z2e6 > /dev/null
 
 perf: Psort
-	perf record -F 99 -g ./Psort z1e6 > /dev/null
+	perf record -F 99 -g ./Psort z2e6 > /dev/null
 	perf report
 
 clean:
