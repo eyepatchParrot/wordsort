@@ -111,44 +111,6 @@ void BM_std_sort(benchmark::State& state) {
 //  }
 //}
 
-void insert(vi& a) {
-  int r = a.size();
-  for (int i = 1; i < r; i++) {
-    int64_t x = a[i];
-    int j = i - 1;
-    if (a[j] > x) {
-      do {
-        a[j+1] = a[j];
-        j--;
-      } while (j >= 0 && a[j] > x);
-      a[j+1] = x;
-    }
-  }
-}
-
-typedef void (*F)(vi&);
-template <F f>
-void BM_sort(benchmark::State& state) {
-  auto nums = range(state.range(0));
-  std::mt19937 g(200);
-  std::vector<vi> v;
-  const int k = state.range(1);
-  for (int i = 0; i < k; i++) {
-    std::shuffle(nums.begin(), nums.end(), g);
-    v.emplace_back(nums);
-  }
-
-  int r = nums.size();
-  int i = 0;
-  while (state.KeepRunning()) {
-    nums = v[i++];
-    i = i < k ? i : 0;
-    f(nums);
-    benchmark::DoNotOptimize(nums.data());
-    for (int j = 1; j < r; j++) assert(nums[j-1] < nums[j]);
-  }
-}
-
 typedef void (*G)(const vi&, vi& v);
 void insert_c(const vi& a, vi& v) {
   // first do the copy and ins, then try using an if statement
@@ -173,6 +135,121 @@ void insert_c(const vi& a, vi& v) {
   }
 }
 
+/*
+void ins_3(const vi& a, vi& v) {
+  assert(a.size() >= 3);
+  assert(v.size() >= 3);
+#define S(a,b,c) v[0] = a; v[1] = b; v[2] = c;
+#define Sbc(a,b,c) if (b<c) { S(a,b,c) } else { S(a,c,b) }
+#define Sac(a,b,c) if (a<c) { Sbc(a,b,c) } else { Sbc(c,b,a) }
+#define Sab(a,b,c) if (a<b) { Sac(a,b,c) } else { Sac(b,a,c) }
+  Sab(a[0],a[1],a[2])
+#undef S
+#undef Sbc
+#undef Sac
+#undef Sab
+  for (int i = 3; i < a.size(); i++) {
+    int64_t x = a[i];
+    int j = i-1;
+    while (j >= 0 && v[j] > x) {
+      v[j+1] = v[j];
+      j--;
+    }
+    v[j+1] = x;
+  }
+}
+*/
+
+/*
+inline void net_4(const vi& a, vi& v) {
+  assert(a.size() >= 4);
+  assert(v.size() >= 4);
+  */
+#define   S(a,b,c,d,v) v[0] = a; v[1] = b; v[2] = c; v[3] = d;
+#define Sbc(a,b,c,d,v) if (b<c) {   S(a,b,c,d,v) } else {   S(a,c,b,d,v) }
+#define Sbd(a,b,c,d,v) if (b<d) { Sbc(a,b,c,d,v) } else { Sbc(a,d,c,b,v) }
+#define Sac(a,b,c,d,v) if (a<c) { Sbd(a,b,c,d,v) } else { Sbd(c,b,a,d,v) }
+#define Scd(a,b,c,d,v) if (c<d) { Sac(a,b,c,d,v) } else { Sac(a,b,d,c,v) }
+#define Sab(a,b,c,d,v) if (a<b) { Scd(a,b,c,d,v) } else { Scd(b,a,c,d,v) }
+#define NET_4(a,v) Sab(a[0], a[1], a[2], a[3],v)
+  /*
+}
+*/
+
+void ins_4(const vi& a, vi& v) {
+  NET_4(a,v)
+  //net_4(a,v);
+  for (int i = 4; i < a.size(); i++) {
+    int64_t x = a[i];
+    int j = i-1;
+    while (j >= 0 && v[j] > x) {
+      v[j+1] = v[j];
+      j--;
+    }
+    v[j+1] = x;
+  }
+}
+
+#undef S
+void net_6(const vi& a, vi& v) {
+#define S(a,b,c,d,e,f) v[0] = a; v[1] = b; v[2] = c; v[3] = d; v[4] = e; v[5] = f;
+#define Scd11(a,b,c,d,e,f) if (c<d) { S(a,b,c,d,e,f) } else { S(a,b,d,c,e,f) }
+#define Sde10(a,b,c,d,e,f) if (d<e) { Scd11(a,b,c,d,e,f) } else { Scd11(a,b,c,e,d,f) }
+#define Sbc9(a,b,c,d,e,f) if (b<c) { Sde10(a,b,c,d,e,f) } else { Sde10(a,c,b,d,e,f) }
+#define Sef8(a,b,c,d,e,f) if (e<f) { Sbc9(a,b,c,d,e,f) } else { Sbc9(a,b,c,d,f,e) }
+#define Scd7(a,b,c,d,e,f) if (c<d) { Sef8(a,b,c,d,e,f) } else { Sef8(a,b,d,c,e,f) }
+#define Sab6(a,b,c,d,e,f) if (a<b) { Scd7(a,b,c,d,e,f) } else { Scd7(b,a,c,d,e,f) }
+#define Sdf5(a,b,c,d,e,f) if (d<f) { Sab6(a,b,c,d,e,f) } else { Sab6(a,b,c,f,e,d) }
+#define Sbe4(a,b,c,d,e,f) if (b<e) { Sdf5(a,b,c,d,e,f) } else { Sdf5(a,e,c,d,b,f) }
+#define Sac3(a,b,c,d,e,f) if (a<c) { Sbe4(a,b,c,d,e,f) } else { Sbe4(c,b,a,d,e,f) }
+#define Sef2(a,b,c,d,e,f) if (e<f) { Sac3(a,b,c,d,e,f) } else { Sac3(a,b,c,d,f,e) }
+#define Scd1(a,b,c,d,e,f) if (c<d) { Sef2(a,b,c,d,e,f) } else { Sef2(a,b,d,c,e,f) }
+#define Sab0(a,b,c,d,e,f) if (a<b) { Scd1(a,b,c,d,e,f) } else { Scd1(b,a,c,d,e,f) }
+  Sab0(v[0],v[1],v[2],v[3],v[4],v[5])
+#undef Sab0
+#undef Scd1
+#undef Sef2
+#undef Sac3
+#undef Sbe4
+#undef Sdf5
+#undef Sab6
+#undef Scd7
+#undef Sef8
+#undef Sbc9
+#undef Sde10
+#undef Scd11
+#undef S
+}
+
+/*
+void mer_4(const vi& a, vi& v) {
+  assert(a.size() >= 4);
+  assert(v.size() >= 4);
+#define S(a,b,c,d) v[0] = a; v[1] = b; v[2] = c; v[3] = d;
+#define ca_bd(a,b,c,d) if (b<d) { S(c,a,b,d) } else { S(c,a,d,b) }
+#define c_abd(a,b,c,d) if (a<d) { ca_bd(a,b,c,d) } else { S(c,d,a,b) }
+#define ac_bd(a,b,c,d) if (b<d) { S(a,c,b,d) } else { S(a,c,d,b) }
+#define a_bcd(a,b,c,d) if (b<c) { S(a,b,c,d) } else { ac_bd(a,b,c,d) }
+#define ac3(a,b,c,d) if (a<c) { a_bcd(a,b,c,d) } else { c_abd(a,b,c,d) }
+#define cd2(a,b,c,d) if (c<d) { ac3(a,b,c,d) } else { ac3(a,b,d,c) }
+#define ab1(a,b,c,d) if (a<b) { cd2(a,b,c,d) } else { cd2(b,a,c,d) }
+  ab1(a[0], a[1],a[2],a[3])
+}
+
+void ins_mer_4(const vi& a, vi& v) {
+  mer_4(a,v);
+  for (int i = 4; i < a.size(); i++) {
+    int64_t x = a[i];
+    int j = i-1;
+    while (j >= 0 && v[j] > x) {
+      v[j+1] = v[j];
+      j--;
+    }
+    v[j+1] = x;
+  }
+}
+*/
+
 template <G f>
 void BM_copy(benchmark::State& state) {
   auto nums = range(state.range(0));
@@ -185,13 +262,12 @@ void BM_copy(benchmark::State& state) {
   }
 
   int r = nums.size();
-  for (int i = 0; state.KeepRunning(); i = i < k ? i : 0) {
-#ifndef NDEBUG
-    std::reverse(nums.begin(), nums.end());
-#endif
-    f(v[i++], nums);
-    benchmark::DoNotOptimize(nums.data());
-    for (int j = 1; j < r; j++) assert(nums[j-1] < nums[j]);
+  for (; state.KeepRunning();) {
+    for (int i = 0; i < k; i++) {
+      f(v[i], nums);
+      benchmark::DoNotOptimize(nums.data());
+      for (int j = 1; j < r; j++) assert(nums[j-1] < nums[j]);
+    }
   }
 }
 
@@ -305,14 +381,17 @@ void BM_copy(benchmark::State& state) {
 
 //BENCHMARK(BM_copy_qsort);
 constexpr int MIN = 4;
-constexpr int MAX = 16;
+constexpr int MAX = 4;
 //BENCHMARK(BM_shuffle)->RangeMultiplier(2)->Range(MIN, MAX);
 //BENCHMARK(BM_std_sort)->RangeMultiplier(2)->Range(2, MAX);
 //BENCHMARK(BM_quickSort)->RangeMultiplier(2)->Range(2, MAX);
 //BENCHMARK(BM_quickSort2);
 //BENCHMARK(BM_insert)->RangeMultiplier(2)->Range(MIN, MAX);
-BENCHMARK_TEMPLATE(BM_sort, insert)->RangeMultiplier(2)->Ranges({{MIN, MAX}, {64, 64}});
-BENCHMARK_TEMPLATE(BM_copy, insert_c)->RangeMultiplier(2)->Ranges({{MIN, MAX}, {64, 64}});
+//BENCHMARK_TEMPLATE(BM_copy, insert_c)->RangeMultiplier(2)->Ranges({{MIN, MAX}, {64, 64}});
+//BENCHMARK_TEMPLATE(BM_copy, ins_3)->RangeMultiplier(2)->Ranges({{MIN, MAX}, {64, 64}});
+BENCHMARK_TEMPLATE(BM_copy, ins_4)->RangeMultiplier(2)->Ranges({{MIN, MAX}, {64, 64}});
+BENCHMARK_TEMPLATE(BM_copy, net_6)->Ranges({{6,6}, {64,64}});
+//BENCHMARK_TEMPLATE(BM_copy, ins_mer_4)->RangeMultiplier(2)->Ranges({{MIN, MAX}, {64, 64}});
 //BENCHMARK_TEMPLATE(BM_sort, insert)->Ranges({{MIN, MAX}, {1, 4096}});
 //BENCHMARK(BM_sort<insert>);
 //BENCHMARK(BM_shell)->RangeMultiplier(2)->Range(MIN, MAX);
