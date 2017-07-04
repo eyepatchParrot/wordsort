@@ -33,7 +33,7 @@ class StrSet {
     int valLen;
 
     KeyVal(char* key, int keyLen, char* val, int valLen)
-      : key(key), val(val), valLen(valLen) { }
+      : key(key), keyLen(keyLen), val(val), valLen(valLen) { }
 
     bool operator<(const KeyVal& r) const {
       const KeyVal& l = *this;

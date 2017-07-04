@@ -80,6 +80,8 @@ StrSet parse(char* fileBuffer, off_t fileSize) {
     char* key = (char*)memrchr(l, ' ', n);
     if (key == NULL)
       key = l;
+    else
+      key++;
 
     linesByKey.put(key, r - key, l, n + 1);
     l = r + 1;
