@@ -25,6 +25,8 @@
 #include <string.h>
 #include <algorithm>
 
+#include <cstdio>
+
 class StrSet {
   struct KeyVal {
     char* key;
@@ -43,23 +45,28 @@ class StrSet {
         return cmp < 0;
       return l.keyLen < r.keyLen;
     }
-
   };
-  std::vector<std::vector<KeyVal>> valsByKey; 
+
+  static constexpr int W = 128;
+  std::vector<KeyVal> valsByKey[W][W];
 
   public:
-    StrSet() : valsByKey(256) { }
+    StrSet() { }
     void put(char* key, int keyLen, char* val, int valLen) {
-      assert(keyLen > 0);
-      valsByKey[key[0]].emplace_back(key, keyLen, val, valLen);
+      assert(1 < keyLen); // TODO put the other ones in another bucket
+      valsByKey[(long)(key[0])][(long)(key[1])].emplace_back(key, keyLen, val, valLen);
     }
 
     void dump(char* out, off_t outSize) {
-      for (auto v : valsByKey) {
-        std::sort(v.begin(), v.end());
-        for (auto keyVal : v) {
-          memcpy(out, keyVal.val, keyVal.valLen);
-          out += keyVal.valLen;
+      for (int i = 0; i < W; i++) {
+        for (int j = 0; j < W; j++) {
+          std::vector<KeyVal>& v = valsByKey[i][j];
+          std::sort(v.begin(), v.end());
+          for (int k = 0; k < v.size(); k++) {
+            auto& keyVal = v[k];
+            memcpy(out, keyVal.val, keyVal.valLen);
+            out += keyVal.valLen;
+          }
         }
       }
     }

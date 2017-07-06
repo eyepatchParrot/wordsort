@@ -13,6 +13,7 @@ Psort: sort.cc
 time: Psort
 	time ./Psort z2e6 > /dev/null
 
+#	amplxe-cl -c general-exploration ./Psort z2e6 > /dev/null
 perf: Psort
 	perf record -F 99 -g ./Psort z2e6 > /dev/null
 	perf report
