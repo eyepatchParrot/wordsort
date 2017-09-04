@@ -26,6 +26,7 @@
 #include <assert.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/time.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <string.h>
@@ -33,32 +34,68 @@
 #include "util.h"
 #include "StrSet.h"
 
+class Time {
+  struct timespec start;
+  std::string msg;
+  bool on;
+  public:
+  Time(std::string s) : msg(s) { reset(); }
+  ~Time() { if (on) print(); }
+  void reset() { on = true; clock_gettime(CLOCK_MONOTONIC, &start); }
+  void print() {
+    struct timespec now;
+    clock_gettime(CLOCK_MONOTONIC, &now);
+    long diffNs = now.tv_nsec - start.tv_nsec;
+    time_t diffS = now.tv_sec - start.tv_sec;
+    double elapsed = (double)diffNs / 1e9L + diffS;
+    fprintf(stderr,"%s %f\n", msg.c_str(), elapsed);
+    on = false;
+  }
+
+};
+
 StrSet parse(char* fileBuffer, off_t fileSize);
 
 int main(int argc, char* argv[]) {
   assert(argc == 2);
 
-  int fd = open(argv[1], O_RDONLY);
-  assert(fd != -1);
+  char* fileBuffer;
+  off_t fileSize;
+  int fd;
+  {
+    Time readT("read");
 
-  // read the whole file into memory. Figure out chunking later.
-  off_t fileSize = getFileSize(fd);
-  char* fileBuffer = new char[fileSize + 1];
-  ssize_t bytesRead = read(fd, fileBuffer, fileSize);
-  assert(bytesRead == fileSize);
+    fd = open(argv[1], O_RDONLY);
+    assert(fd != -1);
+
+    // read the whole file into memory. Figure out chunking later.
+    fileSize = getFileSize(fd);
+    fileBuffer = new char[fileSize + 1];
+    ssize_t bytesRead = read(fd, fileBuffer, fileSize);
+    assert(bytesRead == fileSize); (void)bytesRead;
+  }
 
   // make sure the buffer is newline terminated. If chunking, do this when
   // loading the chunk
   if (fileBuffer[fileSize - 1] != '\n')
     fileBuffer[fileSize++] = '\n';
 
-  StrSet linesByKey = parse(fileBuffer, fileSize);
+  char* outBuffer;
+  {
+    Time parseT("parse");
+    StrSet linesByKey = parse(fileBuffer, fileSize);
+    parseT.print();
 
-  char* outBuffer = new char[fileSize];
-  linesByKey.dump(outBuffer, fileSize);
+    outBuffer = new char[fileSize];
+    Time dumpT("dump");
+    linesByKey.dump(outBuffer, fileSize);
+  }
 
-  ssize_t bytesWritten = write(STDOUT_FILENO, outBuffer, fileSize);
-  assert(bytesWritten == fileSize);
+  {
+    Time writeT("write");
+    ssize_t bytesWritten = write(STDOUT_FILENO, outBuffer, fileSize);
+    assert(bytesWritten == fileSize); (void)bytesWritten;
+  }
 
   delete[] fileBuffer;
   delete[] outBuffer;
